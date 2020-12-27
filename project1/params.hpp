@@ -15,7 +15,7 @@ typedef struct
 	int R;
 	int complete;
 	int flagFiles;
-	string inputFile, queryFile, outputFile, configurationFile, method;
+	string inputFile, queryFile,inputFile_latent, queryFile_latent , outputFile, configurationFile, method;
 } Params;
 
 
@@ -50,67 +50,18 @@ Params inputValidate (int argc, char *argv[])
 	    		exit(0);
 	    	}
 
-	    	if ( strcmp(argv[1], "-d") == 0 && strcmp(argv[3], "-q") == 0 && strcmp(argv[5], "-k") == 0  && strcmp(argv[7], "-L") == 0 && strcmp(argv[9], "-o") == 0 \
-	    			&& strcmp(argv[11], "-N") == 0 && strcmp(argv[13], "-R") == 0 )
+	    	if ( strcmp(argv[1], "-d") == 0 && strcmp(argv[3], "-i") == 0 && strcmp(argv[5], "-q") == 0 && strcmp(argv[7], "-s") == 0 && strcmp(argv[9], "-k") == 0  && strcmp(argv[11], "-L") == 0 && strcmp(argv[13], "-o") == 0 )
 	    	{
 	            params.inputFile = argv[2];
 	            params.queryFile = argv[4];
-	            params.k = atoi(argv[6]);
-	            params.L = atoi(argv[8]);
-	            params.outputFile = argv[10];
-	            params.N = atoi(argv[12]);
-	            params.R = atof(argv[14]);
-				params.M = 10;
+				params.inputFile_latent = argv[6];
+	            params.queryFile_latent = argv[8];
+	            params.k = atoi(argv[10]);
+	            params.L = atoi(argv[12]);
+	            params.outputFile = argv[14];
 				params.flagFiles = 1;
-	        	return params;
-	    	}
-	    	else 
-	    	{
-	    		cout << "Error. Argument related error." << endl;
-	    		exit(0);
-	    	}
-	    }
-    }
-    else if (strcmp(argv[0],"./cube") == 0 || strcmp(argv[0],"./hypercube") == 0)
-    {
-    	if(argc==1)
-	    {
-	    	cout << "Give path to the dataset" << endl;
-			cin >> params.inputFile;
-
-	        params.k = 4;
-	        params.M = 100;
-	        params.probes = 2;
-	        params.N = 1;
-	        params.R = 10000;
-	        // params.inputFile = "./data/train-images.idx3-ubyte";
-	        // params.queryFile = "./data/t10k-images.idx3-ubyte";
-	        // params.outputFile = "outputFile";
-			params.flagFiles = 0;
-	        return params;
-	    }
-
-	    else
-	    { 
-	    	if ( argc != 17 )
-	    	{
-	    		cout <<"Usage: ./cube –d <input file> –q <query file> –k <int> -M <int> -probes <int> -ο "<< \
-						"<output file> -Ν <number of nearest> -R <radius>" << endl;
-	    		exit(0);
-	    	}
-
-	    	if ( (strcmp(argv[1], "-d") == 0 && strcmp(argv[3], "-q") == 0 && strcmp(argv[5], "-k") == 0  && strcmp(argv[7], "-M") == 0 && strcmp(argv[9], "-probes") == 0 && strcmp(argv[11], "-o") == 0 \
-	    			&& strcmp(argv[13], "-N") == 0 && strcmp(argv[15], "-R") == 0) )
-	    	{
-	            params.inputFile = argv[2];
-	            params.queryFile = argv[4];
-	            params.k = atoi(argv[6]);
-	            params.M = atoi(argv[8]);
-	            params.probes = atoi(argv[10]);
-	            params.outputFile = argv[12];
-	            params.N = atoi(argv[14]);
-	            params.R = atof(argv[16]);
-				params.flagFiles = 1;
+				params.R = 10000;
+				params.N = 1;
 	        	return params;
 	    	}
 	    	else 

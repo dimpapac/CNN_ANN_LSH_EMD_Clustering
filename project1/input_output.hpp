@@ -147,6 +147,69 @@ vector<Image <int> *> readFile(string filePath) {
     return images;
 }
 
+
+//returns a vector with images of given file
+vector<Image <int> *> readFile_latent(string filePath) {
+
+    vector <Image <int> *> images;
+    ifstream file (filePath,ios::binary);
+    if (file.is_open()) {
+        
+        int magic_number=0;
+        int n_images=0;
+        int rows=0;
+        int cols=0;
+
+        //Read Magic Number 
+        file.read((char*)&magic_number,sizeof(magic_number));
+        
+        //Get number of images
+        file.read((char*)&n_images,sizeof(n_images));
+        n_images= ReverseInt(n_images);
+
+        //Get number of rows
+        file.read((char*)&rows,4);
+        rows= ReverseInt(rows);
+        
+        //Get number of columns
+        file.read((char*)&cols,4);
+        cols= ReverseInt(cols);
+
+        Image<int> *img;
+
+        for(int i=0;i<1000;++i) {;
+            //Create Image object 
+            img = new Image< int >(); 
+
+            //Fill Image Object
+            for(int r=0;r<rows;++r) {
+                for(int c=0;c<cols;++c) {
+                    unsigned char temp1=0;
+                    unsigned char temp2=0;
+                    file.read((char*)&temp1,sizeof(temp1));
+                    file.read((char*)&temp2,sizeof(temp1));
+                    int number = temp2 | temp1 << 8;
+                    img->add_pixel( number );
+                }
+            }
+
+            //Print for Testing Purposes
+            // img->print();
+
+            images.push_back(img);
+        }
+
+        // Close the file.
+        file.close();
+    }
+    else {
+        cout << "readFile: file does not exist" << endl;
+        exit(0);
+    }
+    return images;
+}
+
+
 // T = Image<int>
 template< typename T>
 void true_knn( int k , T *v , vector<T *> **result , vector <int> **distances , vector<Image <int> *> images){
@@ -156,7 +219,6 @@ void true_knn( int k , T *v , vector<T *> **result , vector <int> **distances , 
     typename std::vector<T *>::const_iterator iterator;
 
     for (iterator = images.begin(); iterator != images.end(); ++iterator) {
-
         if ((*result)->size() < k)
         {
             (*result)->push_back((*iterator));
@@ -179,9 +241,11 @@ void true_knn( int k , T *v , vector<T *> **result , vector <int> **distances , 
 }
 
 template <typename H>
-void output(vector<Image <int> *> images, H group, int flag, Params params){
+void output(vector<Image <int> *> images, vector<Image <int> *> images_latent ,  H group, int flag, Params params){
 
     vector<Image <int> *> queries = readFile(params.queryFile);
+
+    vector<Image <int> *> queries_latent = readFile_latent(params.queryFile_latent);
 
     ofstream myfile;
     myfile.open (params.outputFile);
@@ -192,12 +256,16 @@ void output(vector<Image <int> *> images, H group, int flag, Params params){
         myfile << "Query: " << i << endl; 
         // // cout << std::chrono::duration_cast<std::chrono::milliseconds>(duration).count() << endl; // milisecs
         vector< Image<int> *> *result;
+        vector< Image<int> *> *result_latent;
         vector< int > *distances;
+        vector< int > *distances_latent;
         vector< int > apr_distances;
 
         //Initialize result vector
         result = new vector<Image<int> *>();
+        result_latent = new vector<Image<int> *>();
         distances = new vector<int>();    
+        distances_latent = new vector<int>();   
 
 
         //aproximate knn with time
@@ -211,6 +279,12 @@ void output(vector<Image <int> *> images, H group, int flag, Params params){
         /*vector<Image<int> * > * resTrue = */true_knn(params.N, *ptrI, &result, &distances, images);
         auto end = std::chrono::system_clock::now();
         std::chrono::duration<double> duration = end-start;
+
+        
+        auto start1 = std::chrono::system_clock::now();
+        /*vector<Image<int> * > * resTrue = */true_knn(params.N, queries_latent[i] , &result_latent , &distances_latent , images_latent);
+        auto end1 = std::chrono::system_clock::now();
+        std::chrono::duration<double> duration1 = end1-start1;
 
         vector<Image <int> *>::iterator ptr; 
         ptr = res->begin();
@@ -232,6 +306,7 @@ void output(vector<Image <int> *> images, H group, int flag, Params params){
                 myfile << "distanceLsh: " << apr_distances.at(j) << endl;
             }
             myfile << "distanceTrue: " << distances->at(j) << endl;
+            myfile << "distanceTrue_latent: " << distances_latent->at(j) << endl;
             ptr++;
         } 
         if (flag)
@@ -242,15 +317,15 @@ void output(vector<Image <int> *> images, H group, int flag, Params params){
             myfile << "tLSH: " << duration0.count() << endl;
         }
         myfile << "tTrue: " << duration.count() << endl << endl;
-        myfile << "R-near neighbors:" << endl;
+        // myfile << "R-near neighbors:" << endl;
 
-        int nope = 0;
-        vector<Image <int> *> resultRange = group->aproximate_range( params.R , *ptrI , params.M , &nope );
-        for(int i = 0 ; i<resultRange.size() ; i++ ){
-            auto it = std::find(images.begin(), images.end(), resultRange.at(i) );
-            myfile << distance(images.begin(), it)<<endl;
-        }
-        myfile << endl;
+        // int nope = 0;
+        // vector<Image <int> *> resultRange = group->aproximate_range( params.R , *ptrI , params.M , &nope );
+        // for(int i = 0 ; i<resultRange.size() ; i++ ){
+        //     auto it = std::find(images.begin(), images.end(), resultRange.at(i) );
+        //     myfile << distance(images.begin(), it)<<endl;
+        // }
+        // myfile << endl;
         i++;
 
         delete distances;

@@ -107,9 +107,9 @@ void Hash<T>::aproximate_knn( int k , T *v , vector<T *> **result , vector <int>
 
     for ( int i = 0 ; i < this->buckets[bucket].size() ; i++ ) {
 
-        if ( checked == this->max ){
-            break;
-        }
+        // if ( checked == this->max ){
+        //     break;
+        // }
 
         if ( g == this->gs[bucket].at(i) ){
             if( find( (*result)->begin(), (*result)->end(), this->buckets[bucket].at(i) ) == (*result)->end() /*result doesnt contain this image */ ) {

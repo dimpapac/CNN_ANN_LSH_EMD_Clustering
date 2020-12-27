@@ -11,6 +11,8 @@ int main (int argc, char** argv){
   	 // readfile_get_dimensions
     Hash_Group<Lsh_Hash < Image<int> , int > , Image<int> > *group = new Hash_Group<Lsh_Hash< Image<int> , int > , Image<int> >( params.M , params.L , 15 , 784 , params.k , 40000 , 536870912 );   
     vector<Image <int> *> images = readFileAddHash( group, params.inputFile );
+
+	vector<Image <int> *> images_latent = readFile_latent(params.inputFile_latent);
    
 	string quit;
 	if (params.flagFiles == 0)
@@ -20,7 +22,7 @@ int main (int argc, char** argv){
 		cout << "Give path of output File" << endl;
 		cin >> params.outputFile;
 	}
-    output(images, group, 0, params);
+    output(images, images_latent , group, 0, params);
 
     while(1){
     	cout << "output at -> " << params.outputFile << endl;
@@ -32,7 +34,7 @@ int main (int argc, char** argv){
     	}
     	cout << "Give path of new query file" << endl;
     	cin >> params.queryFile;
-    	output(images, group, 0, params);
+    	output(images, images_latent , group, 0, params);
     }
 
     for ( int i = 0 ; i < images.size() ; i++ ){

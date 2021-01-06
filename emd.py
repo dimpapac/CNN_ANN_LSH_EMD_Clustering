@@ -61,7 +61,8 @@ def create_array_of_image( n , img ):
             for k in range(dist_top_sum ,dist_top_sum + n ):
                 for l in range(dist_left_sum , dist_left_sum + n ):
                     w += img[k,l]
-            img_array.append([[dist_top,dist_left],w/total_sum])
+            perc = "{0:.0f}".format(w/total_sum * 100 )
+            img_array.append([[dist_top,dist_left],int(perc)])
             dist_left += n
             dist_left_sum += n
         dist_top += n
@@ -72,38 +73,52 @@ train_array = list()
 for i in range(60000):
     train_array.append(create_array_of_image( 7 , train_images[i] ))
 
-print(train_array[0])
-print(train_array[5])
 
-sum1 = 0
-for i in range(16):
-    sum1 += train_array[8][i][1]
-
-print(sum1)
-
-
-arr1 = create_array_of_image( 7 , train_images[1] )
-arr2 = create_array_of_image( 7 , train_images[2] )
-    
-clusters = list()
-for i in range(16):
-    cluster = list()
+for i in range(60000):
+    sum1 = 0
     for j in range(16):
-        x = LpVariable("f"+str(i)+str(j), 0 , arr1[i][1])
-        cluster.append(x)
-    clusters.append(cluster)
+        sum1 += train_array[i][j][1]
+    if sum1 < 100 :
+        train_array[i][0][1] += 100 - sum1
+    elif sum1 > 100 :
+        diff = sum1 - 100
+        counter = 0
+        while diff > 0:
+            if train_array[i][counter][1] > 0 :
+                train_array[i][counter][1] -= 1
+                diff -= 1
+            counter += 1
+            if counter == 16:
+                counter = 0
 
-prob = LpProblem("myProblem", LpMinimize)
 
+# arr1 = create_array_of_image( 7 , train_images[1] )
+# arr2 = create_array_of_image( 7 , train_images[2] )
+
+# print(arr1)
+# print(arr2)
+    
+# flows_in_clusters = list()
 # for i in range(16):
-#     prob += lpSum(clusters[i]) == arr1[i][1] 
+#     flows = list()
+#     for j in range(16):
+#         x = LpVariable("f"+str(i)+str(j), 0 , arr1[i][1])
+#         flows.append(x)
+#     flows_in_clusters.append(flows)
 
-prob += lpSum([clusters[0][i] for i in range(16)]) , "elareiii"
+# prob = LpProblem("myProblem", LpMinimize)
+
+# # for i in range(16):
+# #     prob += lpSum(clusters[i]) == arr1[i][1] 
+
+# prob += lpSum([flows_in_clusters[0][i] for i in range(16)]) == arr1[0][1], "elareiii"
+
+# prob += lpSum([flows_in_clusters[0][i] for i in range(16)]) , "elareiii2"
 
 
-# prob += lpSum(clusters[i])
+# # prob += lpSum(clusters[i])
 
-prob.solve()
+# prob.solve()
 
-print(value(clusters[0][0]))
+# print(value(flows_in_clusters[0][0]))
 

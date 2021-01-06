@@ -5,6 +5,8 @@ import struct as st
 import numpy as np
 import sklearn
 from pulp import *
+from math import sqrt
+
 
 with open('./data/train-images.idx3-ubyte','rb') as f:
 # with open(dataset,'rb') as f:
@@ -69,56 +71,107 @@ def create_array_of_image( n , img ):
         dist_top_sum += n
     return img_array
 
-train_array = list()
-for i in range(60000):
-    train_array.append(create_array_of_image( 7 , train_images[i] ))
 
 
-for i in range(60000):
-    sum1 = 0
-    for j in range(16):
-        sum1 += train_array[i][j][1]
-    if sum1 < 100 :
-        train_array[i][0][1] += 100 - sum1
-    elif sum1 > 100 :
-        diff = sum1 - 100
-        counter = 0
-        while diff > 0:
-            if train_array[i][counter][1] > 0 :
-                train_array[i][counter][1] -= 1
-                diff -= 1
-            counter += 1
-            if counter == 16:
-                counter = 0
+# train_array = list()
+# for i in range(60000):
+#     train_array.append(create_array_of_image( 7 , train_images[i] ))
 
 
-# arr1 = create_array_of_image( 7 , train_images[1] )
-# arr2 = create_array_of_image( 7 , train_images[2] )
-
-# print(arr1)
-# print(arr2)
-    
-# flows_in_clusters = list()
-# for i in range(16):
-#     flows = list()
+# for i in range(60000):
+#     sum1 = 0
 #     for j in range(16):
-#         x = LpVariable("f"+str(i)+str(j), 0 , arr1[i][1])
-#         flows.append(x)
-#     flows_in_clusters.append(flows)
+#         sum1 += train_array[i][j][1]
+#     if sum1 < 100 :
+#         train_array[i][0][1] += 100 - sum1
+#     elif sum1 > 100 :
+#         diff = sum1 - 100
+#         counter = 0
+#         while diff > 0:
+#             if train_array[i][counter][1] > 0 :
+#                 train_array[i][counter][1] -= 1
+#                 diff -= 1
+#             counter += 1
+#             if counter == 16:
+#                 counter = 0
 
-# prob = LpProblem("myProblem", LpMinimize)
-
-# # for i in range(16):
-# #     prob += lpSum(clusters[i]) == arr1[i][1] 
-
-# prob += lpSum([flows_in_clusters[0][i] for i in range(16)]) == arr1[0][1], "elareiii"
-
-# prob += lpSum([flows_in_clusters[0][i] for i in range(16)]) , "elareiii2"
+arr1 = create_array_of_image( 7 , train_images[1] )
+arr2 = create_array_of_image( 7 , train_images[2] )
 
 
-# # prob += lpSum(clusters[i])
+sum1 = 0
+for j in range(16):
+    sum1 += arr1[j][1]
+if sum1 < 100 :
+    arr1[0][1] += 100 - sum1
+elif sum1 > 100 :
+    diff = sum1 - 100
+    counter = 0
+    while diff > 0:
+        if arr1[counter][1] > 0 :
+            arr1[counter][1] -= 1
+            diff -= 1
+        counter += 1
+        if counter == 16:
+            counter = 0
 
-# prob.solve()
+sum1 = 0
+for j in range(16):
+    sum1 += arr2[j][1]
+if sum1 < 100 :
+    arr2[0][1] += 100 - sum1
+elif sum1 > 100 :
+    diff = sum1 - 100
+    counter = 0
+    while diff > 0:
+        if arr2[counter][1] > 0 :
+            arr2[counter][1] -= 1
+            diff -= 1
+        counter += 1
+        if counter == 16:
+            counter = 0
 
-# print(value(flows_in_clusters[0][0]))
+#Add variables for flow capacity
+flows_in_clusters = list()
+for i in range(16):
+    flows = list()
+    for j in range(16):
+        x = LpVariable("f"+str(i)+"_"+str(j), 0 , arr1[i][1])
+        flows.append(x)
+    flows_in_clusters.append(flows)
 
+def euclidian( p1 , p2 ):
+    return sqrt( pow(p1[0] - p2[0] , 2) + pow(p1[1] - p2[1] , 2) )
+
+distances = list()
+#Calculate distance for each flow
+for i in range(16):
+    for j in range(16):
+        distances.append( euclidian( arr1[i][0] , arr2[j][0] ) )
+
+
+prob = LpProblem("myProblem", LpMinimize)
+
+# for i in range(16):
+#     prob += lpSum(clusters[i]) == arr1[i][1] 
+
+for j in range(16):
+    prob += lpSum([flows_in_clusters[j][i] for i in range(16)]) == arr1[j][1], "constr"+"_"+str(j)
+
+for j in range(16):
+    prob += lpSum([flows_in_clusters[i][j] for i in range(16)]) == arr2[j][1], "constr2"+"_"+str(j)
+
+final_sum = list()
+for i in range(16):
+    for j in range(16):
+        final_sum.append(flows_in_clusters[i][j])
+
+prob += lpSum([final_sum[i] * distances[i] for i in range(16*16)]) , "goal"
+
+
+try:
+     prob.solve()
+except Exception:
+     print("problem with pup")
+
+print(prob.objective.value())

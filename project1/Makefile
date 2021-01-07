@@ -1,5 +1,7 @@
-all: lsh calc_w cluster
+all: lsh calc_w cluster search3
 
+search3: search3.cpp input_output.hpp 
+	g++ -g -o search3 search3.cpp
 
 lsh: lsh.cpp input_output.hpp lsh_functions.hpp lsh_hash.hpp image.hpp hash.hpp params.hpp hash_group.hpp quicksort.hpp
 	g++ -g -o lsh lsh.cpp

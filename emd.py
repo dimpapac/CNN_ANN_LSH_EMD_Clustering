@@ -144,7 +144,7 @@ def test_no( o , n , test , train_array):
 
 train_array_size = 100
 test_array_size = 10
-n = 4
+n = 7
 k = pow(int(28/n),2)
 train_array = list()
 for i in range(train_array_size):
@@ -192,4 +192,6 @@ sum = 0
 for i in range(len(test_array)):
     sum += test_no( i , n , test_array[i] , train_array )
 
-print( sum / len(test_array) )
+
+with open('./project1/data/emd_results.txt','w') as f:
+    f.write( str(train_array_size) + "\t" + str(test_array_size) + "\t" + str(sum / len(test_array)))

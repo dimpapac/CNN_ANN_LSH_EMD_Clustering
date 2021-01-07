@@ -111,7 +111,7 @@ int main (int argc, char** argv){
 
     if ( params.method.compare("Classic") == 0 ){
         Hash_Group<Lsh_Hash < Image<int> , int > , Image<int> > *hash;
-        images = readFile( params.inputFile );
+        images = readFile( params.inputFile , -1 );
         auto start = std::chrono::system_clock::now();
         clusters = clustering( images  , 784 , params.method , hash , config_params[0] , &centroids);
         auto end = std::chrono::system_clock::now();

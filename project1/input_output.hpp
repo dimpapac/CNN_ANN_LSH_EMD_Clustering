@@ -56,7 +56,7 @@ vector<Image <int> *> readFileAddHash( H *hash_struct , string filePath) {
         Image<int> *img;
 
 
-        for(int i=0;i<1000;++i) {;
+        for(int i=0;i<n_images;++i) {;
             //Create Image object 
             img = new Image< int >(); 
 
@@ -90,8 +90,9 @@ vector<Image <int> *> readFileAddHash( H *hash_struct , string filePath) {
 
 
 //returns a vector with images of given file
-vector<Image <int> *> readFile(string filePath) {
+vector<Image <int> *> readFile(string filePath , int size ) {
 
+    int final;
     vector <Image <int> *> images;
     ifstream file (filePath,ios::binary);
     if (file.is_open()) {
@@ -118,7 +119,13 @@ vector<Image <int> *> readFile(string filePath) {
 
         Image<int> *img;
 
-        for(int i=0;i<1000;++i) {;
+        if (size == -1 ){
+            final = n_images;
+        }
+        else{
+            final = size;
+        }
+        for(int i=0;i<final;++i) {;
             //Create Image object 
             img = new Image< int >(); 
 
@@ -177,7 +184,7 @@ vector<Image <int> *> readFile_latent(string filePath) {
 
         Image<int> *img;
 
-        for(int i=0;i<1000;++i) {;
+        for(int i=0;i<n_images;++i) {;
             //Create Image object 
             img = new Image< int >(); 
 
@@ -243,7 +250,7 @@ void true_knn( int k , T *v , vector<T *> **result , vector <int> **distances , 
 template <typename H>
 void output(vector<Image <int> *> images, vector<Image <int> *> images_latent ,  H group, int flag, Params params){
 
-    vector<Image <int> *> queries = readFile(params.queryFile);
+    vector<Image <int> *> queries = readFile(params.queryFile,-1);
 
     vector<Image <int> *> queries_latent = readFile_latent(params.queryFile_latent);
 
@@ -340,6 +347,105 @@ void output(vector<Image <int> *> images, vector<Image <int> *> images_latent , 
 
     myfile.close();
 }
+
+vector<int> read_labels( string filePath ){
+    // cout<<filePath<<endl;
+    vector<int> labels;
+    ifstream file (filePath,ios::binary);
+    if (file.is_open()) {
+        
+        int magic_number=0;
+        int n_items=0;
+
+        //Read Magic Number 
+        file.read((char*)&magic_number,sizeof(magic_number));
+        
+        //Get number of items
+        file.read((char*)&n_items,sizeof(n_items));
+        n_items= ReverseInt(n_items);
+
+
+        for(int i=0;i<n_items;++i) {;
+            unsigned char temp1=0;
+            file.read((char*)&temp1,sizeof(temp1));
+            labels.push_back(int(temp1));
+        }
+
+        // Close the file.
+        file.close();
+    }
+    else {
+        cout << "readFile: file does not exist" << endl;
+        exit(0);
+    }
+    return labels;
+}
+
+
+
+void output_3(vector<Image <int> *> images, Params params , int train_array_size , int test_array_size , float emd_score ){
+    vector<Image <int> *> queries = readFile(params.queryFile, test_array_size );
+
+
+    vector<int> labels_input = read_labels(params.labels_input);
+    vector<int> labels_query = read_labels(params.labels_query);
+
+    ofstream myfile;
+    myfile.open (params.outputFile);
+
+
+    vector<Image <int> *>::iterator ptrI; 
+    int i=0;
+    int sum = 0;
+    for (ptrI = queries.begin(); ptrI < queries.end(); ptrI++) {
+        vector< Image<int> *> *result;
+        vector< int > *distances;
+
+
+        //Initialize result vector
+        result = new vector<Image<int> *>();
+        distances = new vector<int>();    
+
+        //exact knn with time
+        auto start = std::chrono::system_clock::now();
+        /*vector<Image<int> * > * resTrue = */true_knn( 10 , *ptrI, &result, &distances, images);
+        auto end = std::chrono::system_clock::now();
+        std::chrono::duration<double> duration = end-start;
+
+        int counter = 0;
+        vector<Image <int> *>::iterator ptr; 
+        ptr = result->begin();
+        for (int j = 0; j < result->size() ; ++j){
+            std::vector<Image<int> *>::iterator it = std::find(images.begin(), images.end(), *ptr);
+            int index = std::distance(images.begin(), it);
+            if ( labels_input[index] == labels_query[i] ){
+                counter++;
+            }
+            ptr++;
+        } 
+        // cout<<counter<<endl;
+        sum += counter;
+        
+        i++;
+
+        delete distances;
+        delete result;
+
+    }
+
+    float man_score = (float)sum/ (float) i;
+    
+    myfile << "Average Correct Search Results EMD: " << emd_score <<endl;
+    myfile << "Average Correct Search Results MANHATTAN: " << man_score ;
+
+    for ( int i = 0 ; i < queries.size() ; i++ ){
+        delete queries[i];
+    }
+
+    myfile.close();
+}
+
+
 
 void cluster_output(Params params, std::chrono::duration<double> duration,  vector<Image <int> *> *clusters,  \
                     vector<Image <int> *> *centroids, string silh, int total_centroids, vector<Image <int> *> images){

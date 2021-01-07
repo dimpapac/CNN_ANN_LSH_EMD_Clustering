@@ -15,7 +15,7 @@ typedef struct
 	int R;
 	int complete;
 	int flagFiles;
-	string inputFile, queryFile,inputFile_latent, queryFile_latent , outputFile, configurationFile, method;
+	string inputFile, queryFile,inputFile_latent, queryFile_latent , outputFile, configurationFile, method , labels_input , labels_query ;
 } Params;
 
 
@@ -82,6 +82,68 @@ Params inputValidate (int argc, char *argv[])
 			params.complete = 1;
 	        params.method = "Classic";
 
+	        return params;
+	    }
+
+	    else if (argc == 9)
+	    { 
+	    	if ( strcmp(argv[1], "-i") == 0 && strcmp(argv[3], "-c") == 0 && strcmp(argv[5], "-o") == 0  && strcmp(argv[7], "-m") == 0)
+	    	{	
+	            if (strcmp(argv[8], "Classic") != 0 && strcmp(argv[8], "LSH") != 0 && strcmp(argv[8], "Hypercube") != 0)
+	            {
+	            	cout << "-m <method: Classic OR LSH or Hypercube>" << endl;
+	    			exit(0);
+	            }
+	            params.inputFile = argv[2];
+	            params.configurationFile = argv[4];
+	            params.outputFile = argv[6];
+	            params.complete = 0;
+	            params.method = argv[8];
+	        	return params;
+	    	}
+	    	else 
+	    	{
+	    		cout << "Error. Argument related error." << endl;
+	    		exit(0);
+	    	}
+	    }
+	    else if (argc == 10)
+	    { 
+	    	if ( strcmp(argv[1], "-i") == 0 && strcmp(argv[3], "-c") == 0 && strcmp(argv[5], "-o") == 0  && strcmp(argv[7], "-complete") == 0 && strcmp(argv[8], "-m") == 0 )
+	    	{
+	            if (strcmp(argv[9], "Classic") != 0 && strcmp(argv[9], "LSH") != 0 && strcmp(argv[9], "Hypercube") != 0)
+	            {
+	            	cout << "-m <method: Classic OR LSH or Hypercube>" << endl;
+	    			exit(0);
+	            }
+	            params.inputFile = argv[2];
+	            params.configurationFile = argv[4];
+	            params.outputFile = argv[6];
+	            params.complete = 1;
+	            params.method = argv[9];
+	        	return params;
+	    	}
+	    	else 
+	    	{
+	    		cout << "Error. Argument related error." << endl;
+	    		exit(0);
+	    	}
+	    }
+	    else{
+	    	cout <<"Usage: ./cluster –i <input file> –c <configuration file> -o <output file> -complete "<< \
+						"<optional> -m <method: Classic OR LSH or Hypercube>" << endl;
+	    		exit(0);
+	    }
+    }
+	else if (strcmp(argv[0],"./search3") == 0 )
+    {
+    	if(argc==1)
+	    {
+	        params.inputFile = "../data/train-images.idx3-ubyte";
+	        params.queryFile = "../data/t10k-images.idx3-ubyte";
+			params.labels_input = "../data/train-labels.idx1-ubyte";
+	        params.labels_query = "../data/t10k-labels.idx1-ubyte";
+			params.outputFile = "outputFileSearch3";
 	        return params;
 	    }
 

@@ -104,36 +104,50 @@ int main (int argc, char** argv){
     Params params = inputValidate(argc, argv);
     read_config(&config_params, params.configurationFile);
 
-    vector<Image <int> *> images;
-    vector<Image <int> *> *clusters;
-    vector<Image <int> *> centroids;
+    vector<Image <int> *> images1;
+    vector<Image <int> *> images2;
+    vector<Image <int> *> *clusters1;
+    vector<Image <int> *> *clusters2;
+    vector<Image <int> *> clusters2_1[10];
+    vector<Image <int> *> clusters3;
+    vector<Image <int> *> centroids1;
+    vector<Image <int> *> centroids2;
+    vector<Image <int> *> centroids3;
     std::chrono::duration<double> duration;
 
-    if ( params.method.compare("Classic") == 0 ){
-        Hash_Group<Lsh_Hash < Image<int> , int > , Image<int> > *hash;
-        images = readFile( params.inputFile , -1 );
-        auto start = std::chrono::system_clock::now();
-        clusters = clustering( images  , 784 , params.method , hash , config_params[0] , &centroids);
-        auto end = std::chrono::system_clock::now();
-        duration = end-start;
+    Hash_Group<Lsh_Hash < Image<int> , int > , Image<int> > *hash;
+    images1 = readFile( params.inputFile , 1000 );
+    clusters1 = clustering( images1  , 784 , params.method , hash , config_params[0] , &centroids1);
+
+    images2 = readFile( params.inputFile_latent , 1000 );
+    clusters2 = clustering( images2  , 10 , params.method , hash , config_params[0] , &centroids2);
+
+
+    vector<Image <int> *>::iterator ptr; 
+    for ( int i = 0 ; i < 10 ; i++ ){
+        for (ptr = clusters2[i].begin(); ptr < clusters2[i].end(); ptr++) {    
+            std::vector<Image<int> *>::iterator it = std::find(images2.begin(), images2.end(), *ptr);
+            int index = std::distance(images2.begin(), it);
+            clusters2_1[i].push_back(images1[index]);
+        }
     }
-    else if ( params.method.compare("LSH") == 0 ){
-        Hash_Group<Lsh_Hash < Image<int> , int > , Image<int> > *hash = new Hash_Group<Lsh_Hash< Image<int> , int > , Image<int> >( params.M , config_params[1] , 15 , 784 , config_params[2], 40000 , 536870912 );   
-        images = readFileAddHash( hash, params.inputFile );
-        auto start = std::chrono::system_clock::now();
-        clusters = clustering( images  , 784 , params.method , hash , config_params[0] , &centroids);
-        auto end = std::chrono::system_clock::now();
-        duration = end-start;
-        delete hash;
-    }
+
+
 
     // silhouette function
-    string silh_string = silhouette(clusters, config_params[0] , &centroids);
-    cluster_output(params, duration, clusters, &centroids, silh_string , config_params[0], images);
+    string silh_string1 = silhouette(clusters1, config_params[0] , &centroids1 , 784 );
+    string silh_string2 = silhouette(clusters2_1, config_params[0] , &centroids2 , 784 );
 
+    cout<< silh_string1 << endl;
+    cout<< silh_string2 << endl;
+    // cluster_output(params, duration, clusters, &centroids, silh_string , config_params[0], images1);
+    // cout<<"Segmentation Fault"<<endl;
 
-    for ( int i = 0 ; i < images.size() ; i++ ){
-        delete images[i];
+    for ( int i = 0 ; i < images1.size() ; i++ ){
+        delete images1[i];
+    }
+    for ( int i = 0 ; i < images2.size() ; i++ ){
+        delete images2[i];
     }
     delete[] config_params;
 

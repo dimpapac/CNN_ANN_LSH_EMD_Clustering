@@ -12,7 +12,7 @@ void print(S my_string){
 
 
 // average distance of img and imgs of cluster
-int average_distance(Image<int> * img, vector<Image <int> *> cluster){
+int average_distance(Image<int> * img, vector<Image <int> *> cluster , int dim ){
 	if (cluster.size() == 0)
 	{
 		return -1;
@@ -22,7 +22,7 @@ int average_distance(Image<int> * img, vector<Image <int> *> cluster){
 	{
 		if (img != cluster[i]) // not me 
 		{
-			int dist = manDistance( img->get_data() , cluster[i]->get_data() , 784 ); 
+			int dist = manDistance( img->get_data() , cluster[i]->get_data() , dim ); 
 			sum += dist;
 		}
 	}
@@ -48,7 +48,7 @@ int my_cluster(Image<int> * img, vector<Image <int> *> *clusters){
 }
 
 //find index of next best (neighbor) cluster
-int b_index(Image<int> * img, vector<Image <int> *> *centroids, int total_clusters, int index ){
+int b_index(Image<int> * img, vector<Image <int> *> *centroids, int total_clusters, int index , int dim ){
 	// int index = my_cluster(img, clusters);
 	int min = INT32_MAX; 
 	int retVal = 0;
@@ -56,7 +56,7 @@ int b_index(Image<int> * img, vector<Image <int> *> *centroids, int total_cluste
 	{
 		if (i!= index) //not my cluster
 		{
-			int avg = manDistance( img->get_data() , centroids->at(i)->get_data() , 784 );
+			int avg = manDistance( img->get_data() , centroids->at(i)->get_data() , dim );
 			if (avg<min)
 			{
 				min = avg;
@@ -72,7 +72,7 @@ int b_index(Image<int> * img, vector<Image <int> *> *centroids, int total_cluste
 
 // T = vector<Image <int> *>
 template <typename T>
-string silhouette (T *clusters, int total_clusters , T *centroids)
+string silhouette (T *clusters, int total_clusters , T *centroids , int dim )
 {
 	//for every cluster
 	vector<float> average_s;
@@ -83,9 +83,9 @@ string silhouette (T *clusters, int total_clusters , T *centroids)
 		float avg_s = 0;
 		for (int j = 0; j < clusters[i].size(); ++j)
 		{
-			int a = average_distance(clusters[i].at(j), clusters[i]);
-			int bin = b_index(clusters[i].at(j), centroids , total_clusters, i);
-			int b = average_distance(clusters[i].at(j), clusters[bin]);
+			int a = average_distance(clusters[i].at(j), clusters[i] , dim );
+			int bin = b_index(clusters[i].at(j), centroids , total_clusters, i , dim );
+			int b = average_distance(clusters[i].at(j), clusters[bin] , dim );
 			float s= 0;
 			if (a<b)
 			{

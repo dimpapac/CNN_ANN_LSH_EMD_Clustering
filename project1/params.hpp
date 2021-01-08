@@ -147,54 +147,31 @@ Params inputValidate (int argc, char *argv[])
 	        return params;
 	    }
 
-	    else if (argc == 9)
+	    else if (argc == 12)
 	    { 
-	    	if ( strcmp(argv[1], "-i") == 0 && strcmp(argv[3], "-c") == 0 && strcmp(argv[5], "-o") == 0  && strcmp(argv[7], "-m") == 0)
+	    	if ( strcmp(argv[1], "-d") == 0 && strcmp(argv[3], "-q") == 0 && strcmp(argv[5], "-l1") == 0  \
+	    		&& strcmp(argv[7], "-l2") == 0 && strcmp(argv[9], "-o") == 0 && strcmp(argv[11], "-EMD") == 0)
 	    	{	
-	            if (strcmp(argv[8], "Classic") != 0 && strcmp(argv[8], "LSH") != 0 && strcmp(argv[8], "Hypercube") != 0)
-	            {
-	            	cout << "-m <method: Classic OR LSH or Hypercube>" << endl;
-	    			exit(0);
-	            }
+	            
 	            params.inputFile = argv[2];
-	            params.configurationFile = argv[4];
-	            params.outputFile = argv[6];
-	            params.complete = 0;
-	            params.method = argv[8];
+	            params.queryFile = argv[4];
+	            params.labels_input = argv[6];
+	            params.labels_query = argv[8];
+	            params.outputFile = argv[10];
 	        	return params;
 	    	}
 	    	else 
 	    	{
 	    		cout << "Error. Argument related error." << endl;
-	    		exit(0);
-	    	}
-	    }
-	    else if (argc == 10)
-	    { 
-	    	if ( strcmp(argv[1], "-i") == 0 && strcmp(argv[3], "-c") == 0 && strcmp(argv[5], "-o") == 0  && strcmp(argv[7], "-complete") == 0 && strcmp(argv[8], "-m") == 0 )
-	    	{
-	            if (strcmp(argv[9], "Classic") != 0 && strcmp(argv[9], "LSH") != 0 && strcmp(argv[9], "Hypercube") != 0)
-	            {
-	            	cout << "-m <method: Classic OR LSH or Hypercube>" << endl;
-	    			exit(0);
-	            }
-	            params.inputFile = argv[2];
-	            params.configurationFile = argv[4];
-	            params.outputFile = argv[6];
-	            params.complete = 1;
-	            params.method = argv[9];
-	        	return params;
-	    	}
-	    	else 
-	    	{
-	    		cout << "Error. Argument related error." << endl;
+	    		cout <<"Usage: ./search –d <input file original space> –q <query file original space> -l1 "<< \
+					"<labels of input dataset> -l2 <labels of query dataset> -ο <output file> -EMD" << endl;
 	    		exit(0);
 	    	}
 	    }
 	    else{
-	    	cout <<"Usage: ./cluster –i <input file> –c <configuration file> -o <output file> -complete "<< \
-						"<optional> -m <method: Classic OR LSH or Hypercube>" << endl;
-	    		exit(0);
+	    	cout <<"Usage: ./search –d <input file original space> –q <query file original space> -l1 "<< \
+					"<labels of input dataset> -l2 <labels of query dataset> -ο <output file> -EMD" << endl;
+	    	exit(0);
 	    }
     }
 	return params;

@@ -3,6 +3,9 @@
 #include <sstream>
 #include <string>
 #include <random>
+#include <regex>
+#include <vector>
+
 
 #include "input_output.hpp"
 #include "silhouette.hpp"
@@ -97,6 +100,48 @@ vector<T> *clustering( vector<T> images  , int d , string method , H hash , int 
     return clusters;
 }
 
+
+template <typename T > 
+vector<T> *read_classification_results( string filename , vector<T> images , int total_images ) {
+    vector<T> *clusters = new vector<T>[10];
+
+
+    ifstream file(filename);
+    
+    
+    string line;
+    regex reg("[0-9]+");
+
+    for (int i = 0; i < 10; i++)
+    {
+      smatch matches;
+    
+      getline(file, line);
+      regex_search(line, matches, reg);
+      line = matches.suffix().str();
+    
+      /* match again to get the size, and remove it */
+      regex_search(line, matches, reg);
+      int size = stoi(matches[0]);
+      line = matches.suffix().str();
+
+
+      while(regex_search(line, matches, reg))
+      {
+        if ( stoi( matches[0] ) < total_images ){
+            clusters[i].push_back( images[stoi( matches[0] ) ] );
+        }
+        line = matches.suffix().str();
+      }
+    
+
+    }
+
+    file.close();
+
+    return clusters;
+}
+
 int main (int argc, char** argv){
 
     
@@ -106,20 +151,27 @@ int main (int argc, char** argv){
 
     vector<Image <int> *> images1;
     vector<Image <int> *> images2;
+    vector<Image <int> *> images3;
     vector<Image <int> *> *clusters1;
     vector<Image <int> *> *clusters2;
     vector<Image <int> *> clusters2_1[10];
-    vector<Image <int> *> clusters3;
+    vector<Image <int> *> *clusters3;
     vector<Image <int> *> centroids1;
     vector<Image <int> *> centroids2;
     vector<Image <int> *> centroids3;
     std::chrono::duration<double> duration;
 
+    int total_images = 1000;
+    images3 = readFile( params.inputFile , total_images );
+    clusters3 = read_classification_results( params.clusterFile , images3 , total_images );
+    centroids3 = update_centroids( clusters3 , 784 , 10 , centroids1 );
+
+
     Hash_Group<Lsh_Hash < Image<int> , int > , Image<int> > *hash;
-    images1 = readFile( params.inputFile , 1000 );
+    images1 = readFile( params.inputFile , total_images );
     clusters1 = clustering( images1  , 784 , params.method , hash , config_params[0] , &centroids1);
 
-    images2 = readFile( params.inputFile_latent , 1000 );
+    images2 = readFile( params.inputFile_latent , total_images );
     clusters2 = clustering( images2  , 10 , params.method , hash , config_params[0] , &centroids2);
 
 
@@ -137,11 +189,12 @@ int main (int argc, char** argv){
     // silhouette function
     string silh_string1 = silhouette(clusters1, config_params[0] , &centroids1 , 784 );
     string silh_string2 = silhouette(clusters2_1, config_params[0] , &centroids2 , 784 );
+    string silh_string3 = silhouette(clusters3, config_params[0] , &centroids3 , 784 );
 
     cout<< silh_string1 << endl;
     cout<< silh_string2 << endl;
+    cout<<silh_string3<<endl;
     // cluster_output(params, duration, clusters, &centroids, silh_string , config_params[0], images1);
-    // cout<<"Segmentation Fault"<<endl;
 
     for ( int i = 0 ; i < images1.size() ; i++ ){
         delete images1[i];
@@ -156,3 +209,4 @@ int main (int argc, char** argv){
     return 1;
     
 }
+

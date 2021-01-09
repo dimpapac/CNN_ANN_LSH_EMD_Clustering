@@ -77,7 +77,7 @@ Params inputValidate (int argc, char *argv[])
 	    {
 	        params.inputFile = "./data/train-images.idx3-ubyte";
 	        params.inputFile_latent = "../train_latent";
-	        params.clusterFile = "clusterFile";
+	        params.clusterFile = "./data/classification_results.txt";
 			params.configurationFile = "./cluster.conf";
 	        params.outputFile = "outputFileCluster";
 			params.complete = 1;

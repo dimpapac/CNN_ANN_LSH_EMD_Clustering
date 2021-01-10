@@ -166,7 +166,6 @@ int main (int argc, char** argv){
     clusters3 = read_classification_results( params.clusterFile , images3 , total_images );
     centroids3 = update_centroids( clusters3 , 784 , 10 , centroids1 );
 
-
     Hash_Group<Lsh_Hash < Image<int> , int > , Image<int> > *hash;
     images1 = readFile( params.inputFile , total_images );
     clusters1 = clustering( images1  , 784 , params.method , hash , config_params[0] , &centroids1);

@@ -25,10 +25,10 @@ int ReverseInt (int i) {
 
 
 template <typename H>
-vector<Image <int> *> readFileAddHash( H *hash_struct , string filePath) {
+vector<Image <int> *> readFileAddHash( H *hash_struct , string filePath , int size ) {
     //H represents the type of hashing we use.Group of lsh or hypercube.
 
-
+    int final;
     vector <Image <int> *> images;
     ifstream file (filePath, ios::binary);
     if (file.is_open()) {
@@ -55,8 +55,13 @@ vector<Image <int> *> readFileAddHash( H *hash_struct , string filePath) {
 
         Image<int> *img;
 
-
-        for(int i=0;i<n_images;++i) {;
+        if (size == -1 ){
+            final = n_images;
+        }
+        else{
+            final = size;
+        }
+        for(int i=0;i<final;++i) {;
             //Create Image object 
             img = new Image< int >(); 
 
@@ -156,12 +161,12 @@ vector<Image <int> *> readFile(string filePath , int size ) {
 
 
 //returns a vector with images of given file
-vector<Image <int> *> readFile_latent(string filePath) {
+vector<Image <int> *> readFile_latent(string filePath , int size ) {
 
     vector <Image <int> *> images;
     ifstream file (filePath,ios::binary);
     if (file.is_open()) {
-        
+        int final;
         int magic_number=0;
         int n_images=0;
         int rows=0;
@@ -183,8 +188,13 @@ vector<Image <int> *> readFile_latent(string filePath) {
         cols= ReverseInt(cols);
 
         Image<int> *img;
-
-        for(int i=0;i<n_images;++i) {;
+        if (size == -1 ){
+            final = n_images;
+        }
+        else{
+            final = size;
+        }
+        for(int i=0;i<final;++i) {;
             //Create Image object 
             img = new Image< int >(); 
 
@@ -250,15 +260,22 @@ void true_knn( int k , T *v , vector<T *> **result , vector <int> **distances , 
 template <typename H>
 void output(vector<Image <int> *> images, vector<Image <int> *> images_latent ,  H group, int flag, Params params){
 
-    vector<Image <int> *> queries = readFile(params.queryFile,-1);
+    vector<Image <int> *> queries = readFile(params.queryFile, 100 );
 
-    vector<Image <int> *> queries_latent = readFile_latent(params.queryFile_latent);
+    vector<Image <int> *> queries_latent = readFile_latent(params.queryFile_latent, 100 );
 
     ofstream myfile;
     myfile.open (params.outputFile);
 
+    float sum1 = 0;
+    float sum2 = 0;
+    float sum3 = 0;
+    float sum4 = 0;
+    float sum5 = 0;
+
     vector<Image <int> *>::iterator ptrI; 
     int i=0;
+    int j = 0;
     for (ptrI = queries.begin(); ptrI < queries.end(); ptrI++) {
         myfile << "Query: " << i << endl; 
         // // cout << std::chrono::duration_cast<std::chrono::milliseconds>(duration).count() << endl; // milisecs
@@ -276,63 +293,62 @@ void output(vector<Image <int> *> images, vector<Image <int> *> images_latent , 
 
 
         //aproximate knn with time
-        auto start0 = std::chrono::system_clock::now();
+        std::chrono::steady_clock::time_point start0 = std::chrono::steady_clock::now();
         vector<Image<int> * > * res = group->aproximate_knn(params.N, *ptrI, &apr_distances,params.M);
-        auto end0 = std::chrono::system_clock::now();
-        std::chrono::duration<double> duration0 = end0-start0;
+        std::chrono::steady_clock::time_point end0 = std::chrono::steady_clock::now();
+        float duration0 = std::chrono::duration<float>(end0 - start0).count();
+        sum1 = sum1 + (float) duration0;
 
         //exact knn with time
-        auto start = std::chrono::system_clock::now();
-        /*vector<Image<int> * > * resTrue = */true_knn(params.N, *ptrI, &result, &distances, images);
-        auto end = std::chrono::system_clock::now();
-        std::chrono::duration<double> duration = end-start;
+        std::chrono::steady_clock::time_point start = std::chrono::steady_clock::now();
+        true_knn(params.N, *ptrI, &result, &distances, images);
+        std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
+        float duration = std::chrono::duration<float>(end - start).count();
+        sum2 = sum2 + (float) duration;
 
         
-        auto start1 = std::chrono::system_clock::now();
-        /*vector<Image<int> * > * resTrue = */true_knn(params.N, queries_latent[i] , &result_latent , &distances_latent , images_latent);
-        auto end1 = std::chrono::system_clock::now();
-        std::chrono::duration<double> duration1 = end1-start1;
-
-        vector<Image <int> *>::iterator ptr; 
-        ptr = res->begin();
-        // vector<Image <int> *>::iterator ptrTrue;
-        // ptrTrue = resTrue->begin();
+        std::chrono::steady_clock::time_point start1 = std::chrono::steady_clock::now();
+        true_knn(params.N, queries_latent[i] , &result_latent , &distances_latent , images_latent);
+        std::chrono::steady_clock::time_point end1 = std::chrono::steady_clock::now();
+        float duration1 = std::chrono::duration<float>(end1 - start1).count();
+        sum3 = sum3 + (float) duration1;
 
 
-        
+        vector<Image <int> *>::iterator ptr2; 
+        ptr2 = result->begin();
+        vector<Image <int> *>::iterator ptr3; 
+        ptr3 = result_latent->begin();
 
-        //print distances for k nearest Neighbors
-        for (int j = 0; j < res->size() ; ++j){
-            myfile << endl;
+        std::vector<Image<int> *>::iterator it2 = std::find(images.begin(), images.end(), *ptr2);
+        int index2 = std::distance(images.begin(), it2);
+
+        std::vector<Image<int> *>::iterator it3 = std::find(images_latent.begin(), images_latent.end(), *ptr3);
+        int index3 = std::distance(images_latent.begin(), it3);
+
+        myfile << "Nearest neighbor Reduced: " << index3 << endl;
+        if ( res->size() > 0 ){
+            vector<Image <int> *>::iterator ptr; 
+            ptr = res->begin();
             std::vector<Image<int> *>::iterator it = std::find(images.begin(), images.end(), *ptr);
             int index = std::distance(images.begin(), it);
-            myfile << "Nearest neighbor-" << j+1 << ": " << index << endl;
-            if (flag){
-                myfile << "distanceHypercube: " << apr_distances.at(j) << endl;
-            }else{
-                myfile << "distanceLsh: " << apr_distances.at(j) << endl;
-            }
-            myfile << "distanceTrue: " << distances->at(j) << endl;
-            myfile << "distanceTrue_latent: " << distances_latent->at(j) << endl;
-            ptr++;
-        } 
-        if (flag)
-        {
-            myfile << "tHypercube: " << duration0.count() << endl;
-        }else
-        {
-            myfile << "tLSH: " << duration0.count() << endl;
+            myfile << "Nearest neighbor LSH: " << index << endl;
         }
-        myfile << "tTrue: " << duration.count() << endl << endl;
-        // myfile << "R-near neighbors:" << endl;
+        myfile << "Nearest neighbor True: " << index2 << endl;
 
-        // int nope = 0;
-        // vector<Image <int> *> resultRange = group->aproximate_range( params.R , *ptrI , params.M , &nope );
-        // for(int i = 0 ; i<resultRange.size() ; i++ ){
-        //     auto it = std::find(images.begin(), images.end(), resultRange.at(i) );
-        //     myfile << distance(images.begin(), it)<<endl;
-        // }
-        // myfile << endl;
+        int dist_red = manDistance( queries[i]->get_data() , images[index3]->get_data(), 784 );
+
+
+        myfile << "distanceReduced: " << dist_red << endl;
+        if ( apr_distances.size() > 0 ){
+            myfile << "distanceLsh: " << apr_distances.at(0) << endl;
+            sum4 += (float) apr_distances.at(0) / (float) distances->at(0);
+            j++;
+        }
+        myfile << "distanceTrue: " << distances->at(0) << endl;
+        myfile << endl;
+
+        sum5 += (float) dist_red / (float) distances->at(0);
+
         i++;
 
         delete distances;
@@ -340,6 +356,17 @@ void output(vector<Image <int> *> images, vector<Image <int> *> images_latent , 
         delete result;
 
     }
+
+
+    
+    myfile << "tReduced: " << (float) sum3/ (float) i << endl;
+    myfile << "tLSH: " << (float) sum1/ (float) i << endl ;
+    myfile << "tTrue: " << (float) sum2/ (float) i<< endl ;
+    if ( j > 0 ){
+        myfile << "Approximation Factor LSH: " << (float) sum4/ (float) j<< endl ;
+    }
+    myfile << "Approximation Factor Reduced: " << (float) sum5/ (float) i<< endl ;
+    
 
     for ( int i = 0 ; i < queries.size() ; i++ ){
         delete queries[i];

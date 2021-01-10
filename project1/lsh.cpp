@@ -10,9 +10,9 @@ int main (int argc, char** argv){
 
   	 // readfile_get_dimensions
     Hash_Group<Lsh_Hash < Image<int> , int > , Image<int> > *group = new Hash_Group<Lsh_Hash< Image<int> , int > , Image<int> >( params.M , params.L , 15 , 784 , params.k , 40000 , 536870912 );   
-    vector<Image <int> *> images = readFileAddHash( group, params.inputFile );
+    vector<Image <int> *> images = readFileAddHash( group, params.inputFile , 1000 );
 
-	vector<Image <int> *> images_latent = readFile_latent(params.inputFile_latent);
+	vector<Image <int> *> images_latent = readFile_latent(params.inputFile_latent ,1000 );
    
 	string quit;
 	if (params.flagFiles == 0)

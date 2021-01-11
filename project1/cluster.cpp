@@ -142,12 +142,34 @@ vector<T> *read_classification_results( string filename , vector<T> images , int
     return clusters;
 }
 
+template <typename T > 
+uint64_t objective_value( vector<T> images , vector<T> centroids , int d ){
+
+    uint64_t o_val = 0;
+    int min = 0;
+    int dist;
+    for ( int i = 0 ; i < images.size() ; i++ ){
+        min = manDistance( images.at(i)->get_data() , centroids.at(0)->get_data() , d );
+        for ( int j = 1 ; j < centroids.size() ; j++ ){
+            dist = manDistance( images.at(i)->get_data() , centroids.at(j)->get_data() , d );
+            if ( dist < min ){
+                min = dist;
+            }
+        }
+        o_val += min;
+    }
+    return o_val;
+}
+
 int main (int argc, char** argv){
 
     
     int *config_params = new int[6];
     Params params = inputValidate(argc, argv);
     read_config(&config_params, params.configurationFile);
+
+    ofstream myfile;
+    myfile.open (params.outputFile);
 
     vector<Image <int> *> images1;
     vector<Image <int> *> images2;
@@ -159,19 +181,28 @@ int main (int argc, char** argv){
     vector<Image <int> *> centroids1;
     vector<Image <int> *> centroids2;
     vector<Image <int> *> centroids3;
+    vector<Image <int> *> centroids4;
     std::chrono::duration<double> duration;
 
     int total_images = 1000;
+    
     images3 = readFile( params.inputFile , total_images );
     clusters3 = read_classification_results( params.clusterFile , images3 , total_images );
     centroids3 = update_centroids( clusters3 , 784 , 10 , centroids1 );
 
     Hash_Group<Lsh_Hash < Image<int> , int > , Image<int> > *hash;
     images1 = readFile( params.inputFile , total_images );
+    std::chrono::steady_clock::time_point start0 = std::chrono::steady_clock::now();
     clusters1 = clustering( images1  , 784 , params.method , hash , config_params[0] , &centroids1);
+    std::chrono::steady_clock::time_point end0 = std::chrono::steady_clock::now();
+    float duration0 = std::chrono::duration<float>(end0 - start0).count();
 
-    images2 = readFile( params.inputFile_latent , total_images );
+    images2 = readFile_latent( params.inputFile_latent , total_images );
+    std::chrono::steady_clock::time_point start1 = std::chrono::steady_clock::now();
     clusters2 = clustering( images2  , 10 , params.method , hash , config_params[0] , &centroids2);
+    std::chrono::steady_clock::time_point end1 = std::chrono::steady_clock::now();
+    float duration1 = std::chrono::duration<float>(end1 - start1).count();
+
 
 
     vector<Image <int> *>::iterator ptr; 
@@ -182,6 +213,7 @@ int main (int argc, char** argv){
             clusters2_1[i].push_back(images1[index]);
         }
     }
+    centroids4 = update_centroids( clusters2_1 , 784 , 10 , centroids1 );
 
 
 
@@ -190,9 +222,33 @@ int main (int argc, char** argv){
     string silh_string2 = silhouette(clusters2_1, config_params[0] , &centroids2 , 784 );
     string silh_string3 = silhouette(clusters3, config_params[0] , &centroids3 , 784 );
 
-    cout<< silh_string1 << endl;
-    cout<< silh_string2 << endl;
-    cout<<silh_string3<<endl;
+    uint64_t o1 = objective_value( images1 , centroids1 , 784 );
+    uint64_t o2 = objective_value( images1 , centroids4 , 784 );
+    uint64_t o3 = objective_value( images1 , centroids3 , 784 );
+
+    myfile<< "NEW SPACE" << endl;
+    for ( int i = 0 ; i < 10 ; i++ ){
+        myfile<< "CLUSTER-"<<i<<" {size: "<<clusters2_1[i].size()<<", centroid: [";
+        centroids4[i]->print(&myfile);
+        myfile<< " ] }"<<endl;
+    }
+    myfile<< "clustering_time: " << duration1 << endl ;
+    myfile<< silh_string1 ;
+    myfile<< "Value of Objective Function: " << o2 << endl << endl ;
+
+    myfile<< "ORIGINAL SPACE" << endl;
+    for ( int i = 0 ; i < 10 ; i++ ){
+        myfile<< "CLUSTER-"<<i<<" {size: "<<clusters1[i].size()<<", centroid: [";
+        centroids1[i]->print(&myfile);
+        myfile<< " ] }"<<endl;
+    }
+    myfile<< "clustering_time: " << duration0 << endl ;
+    myfile<< silh_string2;
+    myfile<< "Value of Objective Function: " << o1 << endl << endl ;
+
+    myfile<< "CLASSES AS CLUSTERS" << endl;
+    myfile<<silh_string3;
+    myfile<< "Value of Objective Function: " << o3 << endl << endl ;
     // cluster_output(params, duration, clusters, &centroids, silh_string , config_params[0], images1);
 
     for ( int i = 0 ; i < images1.size() ; i++ ){

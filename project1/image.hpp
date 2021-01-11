@@ -36,9 +36,10 @@ void Image<S>::add_pixel( S p ){
 template <typename S>
 void Image<S>::print( ofstream *myfile ){
     // myfile<<"PRINTING IMAGE!"<<"\n";
-    for (S p : this->data)
-        (*myfile)<<p<<",";
+    for (S p = 0 ; p < this->data.size() - 1 ; p++ )
+        (*myfile)<<this->data[p]<<",";
     // myfile << endl;
+    (*myfile)<<this->data[this->data.size() - 1];
 }
 
 

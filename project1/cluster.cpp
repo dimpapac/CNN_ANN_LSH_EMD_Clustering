@@ -128,8 +128,13 @@ vector<T> *read_classification_results( string filename , vector<T> images , int
 
       while(regex_search(line, matches, reg))
       {
-        if ( stoi( matches[0] ) < total_images ){
+        if ( total_images == -1 ) {
             clusters[i].push_back( images[stoi( matches[0] ) ] );
+        }
+        else{
+            if ( stoi( matches[0] ) < total_images ){
+                clusters[i].push_back( images[stoi( matches[0] ) ] );
+            }
         }
         line = matches.suffix().str();
       }
@@ -184,7 +189,7 @@ int main (int argc, char** argv){
     vector<Image <int> *> centroids4;
     std::chrono::duration<double> duration;
 
-    int total_images = 1000;
+    int total_images = params.total_images;
     
     images3 = readFile( params.inputFile , total_images );
     clusters3 = read_classification_results( params.clusterFile , images3 , total_images );

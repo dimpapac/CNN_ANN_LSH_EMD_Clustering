@@ -260,9 +260,9 @@ void true_knn( int k , T *v , vector<T *> **result , vector <int> **distances , 
 template <typename H>
 void output(vector<Image <int> *> images, vector<Image <int> *> images_latent ,  H group, int flag, Params params){
 
-    vector<Image <int> *> queries = readFile(params.queryFile, 100 );
+    vector<Image <int> *> queries = readFile(params.queryFile, params.total_queries );
 
-    vector<Image <int> *> queries_latent = readFile_latent(params.queryFile_latent, 100 );
+    vector<Image <int> *> queries_latent = readFile_latent(params.queryFile_latent, params.total_queries );
 
     ofstream myfile;
     myfile.open (params.outputFile);

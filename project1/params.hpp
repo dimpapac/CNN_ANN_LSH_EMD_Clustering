@@ -24,7 +24,7 @@ typedef struct
 Params inputValidate (int argc, char *argv[])
 {
     Params params;
-    if (strcmp(argv[0],"./lsh") == 0)
+    if (strcmp(argv[0],"./search2") == 0)
     {
 	    if(argc==1)
 	    {
@@ -94,7 +94,7 @@ Params inputValidate (int argc, char *argv[])
 	    	}
 	    }
 		else{
-	    		cout <<"Usage: $./lsh –d <input file> –q <query file> –k <int> -L <int> -ο <output file> -Ν <number of nearest> -R <radius>" << endl;
+	    		cout <<"Usage: $./search2 –d <input file> –q <query file> –k <int> -L <int> -ο <output file> -Ν <number of nearest> -R <radius>" << endl;
 	    		exit(0);
 	    }
     }

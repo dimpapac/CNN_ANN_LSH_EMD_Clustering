@@ -15,6 +15,7 @@ typedef struct
 	int R;
 	int complete;
 	int flagFiles;
+	int total_images;
 	string inputFile, queryFile,inputFile_latent, queryFile_latent , outputFile, configurationFile, method , labels_input , labels_query , clusterFile;
 } Params;
 
@@ -80,6 +81,7 @@ Params inputValidate (int argc, char *argv[])
 	        params.clusterFile = "./data/classification_results.txt";
 			params.configurationFile = "./cluster.conf";
 	        params.outputFile = "outputFileCluster";
+		    params.total_images = -1;
 			params.complete = 1;
 	        params.method = "Classic";
 
@@ -97,6 +99,7 @@ Params inputValidate (int argc, char *argv[])
 	            params.clusterFile = argv[6];
 				params.configurationFile = argv[8];
 		        params.outputFile = argv[10];
+		        params.total_images = -1; 
 				params.complete = 1;
 		        params.method = "Classic";
 	        	return params;
@@ -104,13 +107,37 @@ Params inputValidate (int argc, char *argv[])
 	    	else 
 	    	{
 	    		cout << "Error. Argument related error." << endl;
-	    		cout <<"./cluster3 –d <input file original space> -i <input file new space>"<< \
+	    		cout <<"./cluster –d <input file original space> -i <input file new space>"<< \
+					"-n <classes from NN as clusters file> –c <configuration file> -o <output file>" << endl;
+	    		exit(0);
+	    	}
+	    }
+	    else if (argc == 12)
+	    { 
+	    	if ( strcmp(argv[1], "-d") == 0 && strcmp(argv[3], "-i") == 0 && strcmp(argv[5], "-n") == 0  \
+	    		&& strcmp(argv[7], "-c") == 0 && strcmp(argv[9], "-o") == 0 )
+	    	{	
+	            
+	            params.inputFile = argv[2];
+		        params.inputFile_latent = argv[4];
+	            params.clusterFile = argv[6];
+				params.configurationFile = argv[8];
+		        params.outputFile = argv[10];
+		        params.total_images = atoi(argv[11]);
+				params.complete = 1;
+		        params.method = "Classic";
+	        	return params;
+	    	}
+	    	else 
+	    	{
+	    		cout << "Error. Argument related error." << endl;
+	    		cout <<"./cluster –d <input file original space> -i <input file new space>"<< \
 					"-n <classes from NN as clusters file> –c <configuration file> -o <output file>" << endl;
 	    		exit(0);
 	    	}
 	    }
 	    else{
-	    	cout <<"./cluster3 –d <input file original space> -i <input file new space>"<< \
+	    	cout <<"./cluster –d <input file original space> -i <input file new space>"<< \
 					"-n <classes from NN as clusters file> –c <configuration file> -o <output file>" << endl;
 	    	exit(0);
 	    }
